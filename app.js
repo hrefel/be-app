@@ -4,26 +4,32 @@ let path = require('path');
 let cookieParser = require('cookie-parser');
 let logger = require('morgan');
 let mongoose = require('mongoose');
+let config = require('./config/config');
+
+let bodyParser = require('body-parser');
+let passport = require('passport');
 
 let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
 let regRouter = require('./routes/register');
-
 let app = express();
+let server = require('http').Server(app);
+
 // load mongoose
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost/db-app', { useNewUrlParser: true }).then(() => {
-  console.log('Berhasil terhubung dengan database');
-}).catch((err) => console.log('Gagal Mongodb is Offlane. Server Error'))
+mongoose.connect(config.urlDatabase, { useNewUrlParser: true }).then(() => { console.log('Express is Ready for execute'); }).catch((err) => console.log('Gagal Mongodb is Offlane. Server Error'));
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+
+app.use(bodyParser.urlencoded({ extended: true }))
 app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*')
   res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, DELETE')
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
   next()
 });
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -38,6 +44,8 @@ app.use('/register', regRouter);
 app.use(function(req, res, next) {
   next(createError(404));
 });
+app.use(passport.initialize());
+require('./config/passport')(passport);
 
 // error handler
 app.use(function(err, req, res, next) {
