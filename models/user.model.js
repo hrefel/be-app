@@ -29,22 +29,14 @@ module.exports.getUserByUsername = function (username, callback) {
 }
 
 module.exports.addUser = function (newUser, callback) {
-    bcrypt.hash(newUser.password, 10, (err, hash) => {
-        if(err) throw err;
-        newUser.password = hash;
-        newUser.save(callback).then(result => {
-            console.log('in save')
-            return res.status(200).json('signup successful')
-          })
-          .catch(error => {
-            if (error.code === 11000) { 
-              return res.status(409).send('user already exist!')
-            } else {
-              console.log(JSON.stringigy(error, null, 2))
-              return res.status(500).send('error signing up user')
-            }
-          })
-    });
+    bcrypt.genSalt(10, function(err, salt) {
+        bcrypt.hash(newUser.password, salt, (err, hash) => {
+            if(err) throw err;
+            newUser.password = hash;
+            console.log(hash);
+            newUser.save(callback);
+        });    
+    })
 }
 
 module.exports.comparePassword = function (candidatePassword, hash, callback) {
