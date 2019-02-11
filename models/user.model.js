@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const config = require('../config/config');
 const bcrypt = require('bcrypt');
+const express = require('express');
+const app = express();
 
 let userSchema = new mongoose.Schema({
     nama: {type: String, required: true },
