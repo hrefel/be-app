@@ -17,7 +17,9 @@ let server = require('http').Server(app);
 
 // load mongoose
 mongoose.Promise = global.Promise;
-mongoose.connect(config.urlDatabase, { useNewUrlParser: true }).then(() => { console.log('Express is Ready for execute'); }).catch((err) => console.log('Gagal Mongodb is Offlane. Server Error'));
+mongoose.connect(config.urlDatabase, { useNewUrlParser: true }).then(() => { 
+  console.log('Server is Ready');
+}).catch((err) => console.log('Gagal Mongodb is Offlane. Server Error'));
 // view engine setup
 
 app.use(bodyParser.urlencoded({ extended: true }))
@@ -28,7 +30,7 @@ app.use(function (req, res, next) {
   next()
 });
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+app.set('view engine', 'jade');
 
 app.use(logger('dev'));
 app.use(express.json());

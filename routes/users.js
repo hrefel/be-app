@@ -18,7 +18,7 @@ router.get('/', function(req, res, next) {
 
 // registration
 router.post('/register', (req, res, next) => {
-	let newUser = ({
+	let newUser = new User({
 		nama:req.body.nama,
 		gender:req.body.gender,
 		address:req.body.address,
@@ -31,18 +31,27 @@ router.post('/register', (req, res, next) => {
 		username:req.body.username,
 		password:req.body.password,
 	});
-
-	User.addUser(newUser, (err, user) => {
-		if(err) {
-			res.json({
-				success: false, message:'Failed register user'
-			})
+	User.getUserByUsername(newUser.username, (err, user) => {
+		if(err) throw err;
+		if(user) {
+			return res.json({
+				success: false, message: 'Username sudah terdaftar'
+			});
 		} else {
-			res.json({
-				success: true, message:'User Register Success'
+			User.addUser(newUser, (err, user) => {
+				if(err) {
+					res.json({
+						success: false, message:'Failed register user'
+					})
+				} else {
+					res.json({
+						success: true, message:'User Register Success'
+					});
+				}
 			});
 		}
-	});	
+	});
+	
 });
 
 // auth
@@ -52,24 +61,31 @@ router.post('/auth', (req, res, next) => {
 
 	User.getUserByUsername(username, (err, user) => {
 		if(err) throw err;
-		if(isMatch) {
-			const token = jwt.sign(user.toObject(), config.secret, {
-				expiresIn: 604800 // 1 week
-			});
-			res.json({
-				success: true,
-				token: token,
-				user: {
-					id: user._id,
-                    name: user.name,
-                    username: user.username,
-				}
-			});
-		} else {
+		if(!user) {
 			return res.json({
-				success: false, message: 'Wrong Password'
+				success: false, message: 'User Not Found'
 			});
 		}
+		User.comparePassword(password, user.password, (err, isMatch) => {
+			if(err) throw err;
+			if(isMatch) {
+				const token = jwt.sign(user.toObject(), config.secret, {
+					expiresIn: 604800 // 1 week
+				});
+				res.json({
+					success: true,
+					token: token,
+					user:{
+						name: user.nama,
+						_id: user._id,
+						username: user.username,
+						email: user.email
+					}
+				})
+			} else {
+				return res.json({success: false, message:'Wrong Password'});
+			}
+		})
 	});
 });
 
